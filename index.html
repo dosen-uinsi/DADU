@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dadu Interaktif</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    body { 
+      font-family: 'DM Sans', sans-serif; 
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    .dice {
+      width: 100px;
+      height: 100px;
+      position: relative;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 3px solid #e2e8f0;
+      box-shadow: 
+        0 6px 12px -2px rgba(0, 0, 0, 0.45),
+        inset 0 2px 4px rgba(255,255,255,0.8);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    @media (min-width: 640px) {
+      .dice {
+        width: 120px;
+        height: 120px;
+      }
+    }
+
+    .dice:hover { 
+      transform: translateY(-4px) scale(1.02); 
+      box-shadow: 0 12px 20px -4px rgba(0, 0, 0, 0.55);
+    }
+
+    .dice:active { 
+      transform: translateY(2px) scale(0.95); 
+    }
+
+    .dice.active { 
+      transform: scale(1.07);
+      z-index: 5;
+    }
+
+    .dice.active-blue {
+      background: #dbeafe;
+      border-color: #2563eb;
+      box-shadow: 
+        0 0 0 5px rgba(37, 99, 235, 0.45),
+        0 12px 28px rgba(37, 99, 235, 0.45);
+    }
+
+    .dice.active-red {
+      background: #fee2e2;
+      border-color: #ef4444;
+      box-shadow: 
+        0 0 0 5px rgba(239, 68, 68, 0.45),
+        0 12px 28px rgba(239, 68, 68, 0.45);
+    }
+
+    .dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      position: absolute;
+      transform: translate(-50%, -50%);
+      box-shadow: 
+        inset 0 3px 5px rgba(0,0,0,0.25),
+        0 1px 1px rgba(255,255,255,0.5);
+    }
+
+    .dot.blue {
+      background: #2563eb;
+    }
+
+    .dot.red {
+      background: #ef4444;
+    }
+
+    @media (min-width: 640px) {
+      .dot {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .pos-1 { left: 24%; top: 24%; }
+    .pos-2 { left: 50%; top: 24%; }
+    .pos-3 { left: 76%; top: 24%; }
+
+    .pos-4 { left: 24%; top: 50%; }
+    .pos-5 { left: 50%; top: 50%; }
+    .pos-6 { left: 76%; top: 50%; }
+
+    .pos-7 { left: 24%; top: 76%; }
+    .pos-8 { left: 50%; top: 76%; }
+    .pos-9 { left: 76%; top: 76%; }
+
+    .number-card {
+      width: 150px;
+      height: 150px;
+      border-radius: 28px;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.45),
+        inset 0 2px 4px rgba(255,255,255,0.8);
+      transition: 0.2s ease;
+    }
+
+    .number-card.red-card {
+      background: #fee2e2;
+      border: 4px solid #ef4444;
+    }
+
+    .number-card.blue-card {
+      background: #dbeafe;
+      border: 4px solid #2563eb;
+    }
+
+    #number-label {
+      font-size: 96px;
+      line-height: 1;
+      font-weight: 900;
+      color: #2563eb;
+      text-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    #number-label.red-number {
+      color: #ef4444;
+      text-shadow: 0 4px 10px rgba(239, 68, 68, 0.25);
+    }
+
+    #number-label.blue-number {
+      color: #2563eb;
+      text-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    @media (max-width: 640px) {
+      .number-card {
+        width: 120px;
+        height: 120px;
+        border-radius: 22px;
+      }
+
+      #number-label {
+        font-size: 76px;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center gap-10 p-6">
+  
+  <header class="flex flex-col items-center gap-3">
+    <h1 class="text-4xl sm:text-5xl font-bold tracking-wider text-indigo-400 drop-shadow-lg">
+      Dadu Interaktif
+    </h1>
+    <p class="text-slate-400 text-sm sm:text-base text-center">
+      Tekan salah satu dadu untuk melihat angka dan mendengarkan suaranya
+    </p>
+  </header>
+
+  <main class="flex flex-col items-center gap-8 w-full max-w-2xl">
+    <div class="grid grid-cols-3 gap-5 sm:gap-8" id="dice-grid"></div>
+    
+    <div class="flex flex-col items-center gap-4">
+      <div class="number-card" id="number-card">
+        <p id="number-label">?</p>
+      </div>
+
+      <p id="spoken-label" class="h-10 text-3xl font-bold text-center text-indigo-400 tracking-widest uppercase"></p>
+    </div>
+  </main>
+
+  <script>
+    const names = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam'];
+
+    const patterns = {
+      1: [5],
+      2: [3, 7],
+      3: [3, 5, 7],
+      4: [1, 3, 7, 9],
+      5: [1, 3, 5, 7, 9],
+      6: [1, 3, 4, 6, 7, 9]
+    };
+
+    const grid = document.getElementById('dice-grid');
+    const numberCard = document.getElementById('number-card');
+    const numberLabel = document.getElementById('number-label');
+    const spokenLabel = document.getElementById('spoken-label');
+
+    for (let n = 1; n <= 6; n++) {
+      const dice = document.createElement('div');
+
+      dice.className = 'dice';
+      dice.setAttribute('role', 'button');
+      dice.setAttribute('aria-label', `Dadu ${names[n]}`);
+      dice.setAttribute('tabindex', '0');
+      dice.setAttribute('aria-pressed', 'false');
+
+      const dotColor = (n === 1 || n === 4) ? 'red' : 'blue';
+
+      patterns[n].forEach(position => {
+        const dot = document.createElement('span');
+        dot.className = `dot ${dotColor} pos-${position}`;
+        dice.appendChild(dot);
+      });
+
+      dice.addEventListener('click', () => selectFace(n, dice));
+
+      dice.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectFace(n, dice);
+        }
+      });
+
+      grid.appendChild(dice);
+    }
+
+    let indonesianVoice = null;
+
+    function loadIndonesianVoice() {
+      if (!('speechSynthesis' in window)) return;
+
+      const voices = window.speechSynthesis.getVoices();
+
+      indonesianVoice =
+        voices.find(voice => voice.lang === 'id-ID') ||
+        voices.find(voice => voice.lang.toLowerCase().startsWith('id')) ||
+        voices.find(voice => voice.name.toLowerCase().includes('indonesia')) ||
+        null;
+    }
+
+    if ('speechSynthesis' in window) {
+      loadIndonesianVoice();
+      window.speechSynthesis.onvoiceschanged = loadIndonesianVoice;
+    }
+
+    function speakIndonesian(text) {
+      if (!('speechSynthesis' in window)) return;
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'id-ID';
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+
+      if (indonesianVoice) {
+        utterance.voice = indonesianVoice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function selectFace(n, el) {
+      document.querySelectorAll('.dice').forEach(dice => {
+        dice.classList.remove('active', 'active-blue', 'active-red');
+        dice.setAttribute('aria-pressed', 'false');
+      });
+
+      el.classList.add('active');
+      el.setAttribute('aria-pressed', 'true');
+
+      numberLabel.textContent = n;
+      spokenLabel.textContent = names[n];
+
+      numberLabel.classList.remove('red-number', 'blue-number');
+      numberCard.classList.remove('red-card', 'blue-card');
+
+      if (n === 1 || n === 4) {
+        el.classList.add('active-red');
+        numberLabel.classList.add('red-number');
+        numberCard.classList.add('red-card');
+      } else {
+        el.classList.add('active-blue');
+        numberLabel.classList.add('blue-number');
+        numberCard.classList.add('blue-card');
+      }
+
+      speakIndonesian(names[n]);
+    }
+  </script>
+</body>
+</html>
