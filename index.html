@@ -4,8 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dadu Interaktif</title>
+
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- Preload gambar agar muncul lebih cepat saat dadu diklik -->
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/satu.png">
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/dua.png">
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/tiga.png">
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/empat.png">
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/lima.png">
+  <link rel="preload" as="image" href="https://raw.githubusercontent.com/dosen-uinsi/DADU/main/enam.png">
 
   <style>
     body { 
@@ -255,6 +264,18 @@
       6: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/enam.png'
     };
 
+    const imageCache = {};
+
+    function preloadImages() {
+      Object.entries(imageMap).forEach(([number, src]) => {
+        const img = new Image();
+        img.src = src;
+        imageCache[number] = img;
+      });
+    }
+
+    preloadImages();
+
     const patterns = {
       1: [5],
       2: [3, 7],
@@ -337,6 +358,44 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    function showNumberImage(n) {
+      const src = imageMap[n];
+      const cachedImage = imageCache[n];
+
+      numberImage.onload = null;
+      numberImage.onerror = null;
+
+      imagePlaceholder.textContent = 'Memuat gambar...';
+      imagePlaceholder.style.display = 'block';
+      numberImage.style.display = 'none';
+
+      numberImage.alt = `Gambar angka ${names[n]}`;
+
+      function showLoadedImage() {
+        numberImage.style.display = 'block';
+        imagePlaceholder.style.display = 'none';
+      }
+
+      function showErrorMessage() {
+        numberImage.style.display = 'none';
+        imagePlaceholder.textContent = 'Gambar gagal dimuat';
+        imagePlaceholder.style.display = 'block';
+      }
+
+      numberImage.onload = showLoadedImage;
+      numberImage.onerror = showErrorMessage;
+
+      numberImage.src = src;
+
+      if (cachedImage && cachedImage.complete && cachedImage.naturalWidth > 0) {
+        showLoadedImage();
+      }
+
+      if (numberImage.complete && numberImage.naturalWidth > 0) {
+        showLoadedImage();
+      }
+    }
+
     function selectFace(n, el) {
       document.querySelectorAll('.dice').forEach(dice => {
         dice.classList.remove('active', 'active-blue', 'active-red');
@@ -365,11 +424,7 @@
         imageCard.classList.add('blue-card');
       }
 
-      numberImage.src = imageMap[n];
-      numberImage.alt = `Gambar angka ${names[n]}`;
-      numberImage.style.display = 'block';
-      imagePlaceholder.style.display = 'none';
-
+      showNumberImage(n);
       speakIndonesian(names[n]);
     }
   </script>
