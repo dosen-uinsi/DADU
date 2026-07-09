@@ -103,6 +103,14 @@
     .pos-8 { left: 50%; top: 76%; }
     .pos-9 { left: 76%; top: 76%; }
 
+    .result-area {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+
     .number-card {
       width: 150px;
       height: 150px;
@@ -145,6 +153,47 @@
       text-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
     }
 
+    .image-card {
+      width: 260px;
+      height: 150px;
+      border-radius: 24px;
+      background: #ffffff;
+      border: 4px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow:
+        0 10px 24px rgba(0,0,0,0.45),
+        inset 0 2px 4px rgba(255,255,255,0.8);
+      transition: 0.2s ease;
+    }
+
+    .image-card.red-card {
+      background: #fee2e2;
+      border-color: #ef4444;
+    }
+
+    .image-card.blue-card {
+      background: #dbeafe;
+      border-color: #2563eb;
+    }
+
+    #number-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: none;
+      background: #ffffff;
+    }
+
+    #image-placeholder {
+      color: #64748b;
+      font-weight: 700;
+      text-align: center;
+      padding: 16px;
+    }
+
     @media (max-width: 640px) {
       .number-card {
         width: 120px;
@@ -154,6 +203,11 @@
 
       #number-label {
         font-size: 76px;
+      }
+
+      .image-card {
+        width: 260px;
+        height: 145px;
       }
     }
   </style>
@@ -166,16 +220,23 @@
       Dadu Interaktif
     </h1>
     <p class="text-slate-400 text-sm sm:text-base text-center">
-      Tekan salah satu dadu untuk melihat angka dan mendengarkan suaranya
+      Tekan salah satu dadu untuk melihat angka, gambar, dan mendengarkan suaranya
     </p>
   </header>
 
-  <main class="flex flex-col items-center gap-8 w-full max-w-2xl">
+  <main class="flex flex-col items-center gap-8 w-full max-w-3xl">
     <div class="grid grid-cols-3 gap-5 sm:gap-8" id="dice-grid"></div>
     
     <div class="flex flex-col items-center gap-4">
-      <div class="number-card" id="number-card">
-        <p id="number-label">?</p>
+      <div class="result-area">
+        <div class="number-card" id="number-card">
+          <p id="number-label">?</p>
+        </div>
+
+        <div class="image-card" id="image-card">
+          <p id="image-placeholder">Gambar akan muncul di sini</p>
+          <img id="number-image" src="" alt="">
+        </div>
       </div>
 
       <p id="spoken-label" class="h-10 text-3xl font-bold text-center text-indigo-400 tracking-widest uppercase"></p>
@@ -184,6 +245,15 @@
 
   <script>
     const names = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam'];
+
+    const imageMap = {
+      1: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/satu.png',
+      2: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/dua.png',
+      3: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/tiga.png',
+      4: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/empat.png',
+      5: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/lima.png',
+      6: 'https://raw.githubusercontent.com/dosen-uinsi/DADU/main/enam.png'
+    };
 
     const patterns = {
       1: [5],
@@ -198,6 +268,9 @@
     const numberCard = document.getElementById('number-card');
     const numberLabel = document.getElementById('number-label');
     const spokenLabel = document.getElementById('spoken-label');
+    const imageCard = document.getElementById('image-card');
+    const numberImage = document.getElementById('number-image');
+    const imagePlaceholder = document.getElementById('image-placeholder');
 
     for (let n = 1; n <= 6; n++) {
       const dice = document.createElement('div');
@@ -278,16 +351,24 @@
 
       numberLabel.classList.remove('red-number', 'blue-number');
       numberCard.classList.remove('red-card', 'blue-card');
+      imageCard.classList.remove('red-card', 'blue-card');
 
       if (n === 1 || n === 4) {
         el.classList.add('active-red');
         numberLabel.classList.add('red-number');
         numberCard.classList.add('red-card');
+        imageCard.classList.add('red-card');
       } else {
         el.classList.add('active-blue');
         numberLabel.classList.add('blue-number');
         numberCard.classList.add('blue-card');
+        imageCard.classList.add('blue-card');
       }
+
+      numberImage.src = imageMap[n];
+      numberImage.alt = `Gambar angka ${names[n]}`;
+      numberImage.style.display = 'block';
+      imagePlaceholder.style.display = 'none';
 
       speakIndonesian(names[n]);
     }
